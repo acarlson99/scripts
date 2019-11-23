@@ -1,0 +1,22 @@
+# brightness
+xrandr -q | grep '\bconnected\b' | head -n 1 | cut -d ' ' -f1
+xrandr --output eDP-1 --brightness 0.4
+
+# sound
+alsamixer
+
+# restart xfce
+xfce4-panel -r
+xfwm4 --replace
+
+xfce4-settings-editor
+
+xfconf-query -c xfce4-panel -p / -R -r
+xfce4-panel -r
+
+# emacs
+systemctl --user start emacs
+emacsclient -c file
+
+# git
+git clone ssh://git@github.com/acarlson99/repo.git
