@@ -1,7 +1,13 @@
 #!/bin/bash
 
-mkdir my-playlist
-cd my-playlist
+if [[ $# -eq 1 ]]; then
+	mkdir $1
+	cd $1
+else
+	mkdir my-playlist
+	cd my-playlist
+fi
+
 
 OUT=/tmp/tmp-out.html
 QUERYFMT="https://www.youtube.com/results?search_query=%s"
