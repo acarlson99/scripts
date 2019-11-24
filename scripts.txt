@@ -4,6 +4,7 @@ xrandr --output eDP-1 --brightness 0.4
 
 # sound
 alsamixer
+amixer -c 0 set PCM 5%+
 
 # restart xfce
 xfce4-panel -r
