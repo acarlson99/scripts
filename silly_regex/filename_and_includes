@@ -1,0 +1,3 @@
+Finds names of files and includes
+cat *.c | grep -E "(/\*.*ft_.*\*/)|(#include)"
+grep -H "#include" *.c
