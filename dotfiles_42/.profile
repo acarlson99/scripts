@@ -18,6 +18,8 @@ export PATH="${GOPATH}bin:$PATH"
 # export PATH="$HOME/.rbenv/bin:$PATH"
 # eval "$(rbenv init -)"
 
+export CPLUS_INCLUDE_PATH="$HOME/.brew/include/"
+
 alias vi=ed
 alias vim=ed
 
