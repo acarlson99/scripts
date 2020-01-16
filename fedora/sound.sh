@@ -23,6 +23,7 @@ function volume_down() {
 }
 
 function update_headphones() {
+	# look for Pin-ctls segment of "Speaker Playback Switch"
 	my_array=($(cat /proc/asound/card0/codec#0 | tr ' ' '-'))
 
 	if [[ ${my_array[141]} =~ "OUT" ]]
