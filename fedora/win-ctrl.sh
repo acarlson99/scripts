@@ -21,7 +21,8 @@ case $1 in
 		;;
 	down)
 		height=`current_win_height`
-		wmctrl -r :ACTIVE: -e 0,-1,$((1021 - $(($height + 24)))),-1,-1
+		wmctrl -r :ACTIVE: -e 0,-1,$((1070 - $(($height + 24)))),-1,-1
+		# wmctrl -r :ACTIVE: -e 0,-1,$((1021 - $(($height + 24)))),-1,-1
 		;;
 	right)
 		width=`current_win_width`
