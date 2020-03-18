@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ $# -eq 1 ]]; then
-	mkdir $1
-	cd $1
+	mkdir -p $1
+	cd $1 || (echo "UNABLE TO CD" && exit 1)
 else
-	mkdir my-playlist
-	cd my-playlist
+	mkdir -p my-playlist
+	cd my-playlist || (echo "UNABLE TO CD" && exit 1)
 fi
 
 
@@ -36,5 +36,5 @@ while read LINE; do
 
 	WATCHURL=`printf $WATCHFMT $URL`
 	echo "Downloading $WATCHURL"
-	youtube-dl $WATCHURL
+	youtube-dl -f bestaudio $WATCHURL || youtube-dl $WATCHURL
 done

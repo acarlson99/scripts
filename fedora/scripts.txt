@@ -21,3 +21,8 @@ emacsclient -c file
 
 # git
 git clone ssh://git@github.com/acarlson99/repo.git
+
+# inotify file limit
+
+sysctl fs.inotify.max_user_watches=524288
+sudo sysctl -p		# apply changes (I think)
