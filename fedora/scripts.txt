@@ -24,5 +24,17 @@ git clone ssh://git@github.com/acarlson99/repo.git
 
 # inotify file limit
 
-sysctl fs.inotify.max_user_watches=524288
+sudo sysctl fs.inotify.max_user_watches=524288
 sudo sysctl -p		# apply changes (I think)
+
+# mount partition
+
+udisksctl mount -b /dev/sda3
+
+# add key to ssh
+
+ssh-add ~/.ssh/id_keyname
+
+# screen record
+
+peek
