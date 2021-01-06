@@ -38,3 +38,10 @@ ssh-add ~/.ssh/id_keyname
 # screen record
 
 peek
+
+# dnf
+
+https://tylersguides.com/guides/listing-files-in-a-package-with-dnf/
+
+dnf repoquery -l pulseaudio-libs-devel # list files in repo
+rpm -ql crontabs
