@@ -45,3 +45,14 @@ https://tylersguides.com/guides/listing-files-in-a-package-with-dnf/
 
 dnf repoquery -l pulseaudio-libs-devel # list files in repo
 rpm -ql crontabs
+
+# enable setrlimit systemctl
+
+```
+If you believe that systemctl should be allowed setrlimit access on processes labeled NetworkManager_t by default.
+You should report this as a bug.
+You can generate a local policy module to allow this access.
+Allow this access for now by executing:
+# ausearch -c 'systemctl' --raw | audit2allow -M my-systemctl
+# semodule -X 300 -i my-systemctl.pp
+```
