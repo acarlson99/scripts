@@ -1,0 +1,9 @@
+rules:
+  - reg: list
+    cmd: ls /
+  - reg: silly (\w+)
+    cmd: echo wowee {} you goof
+  - reg: wow (\d+) (\w+) is a whole (lot|bunch)
+    cmd: echo 'slorping {} {}'
+  - reg: terminal
+    cmd: xfce4-terminal

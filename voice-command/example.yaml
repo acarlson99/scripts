@@ -1,0 +1,11 @@
+rules:
+  - reg: create file (\w+)        # match   "create file test"
+    cmd: touch {}                 # execute "touch test"
+  - reg: create directory (\w+)   # match   "create directory test"
+    cmd: mkdir {}                 # execute "mkdir test"
+  - reg: silly ([^ ]+) goose      # NOTE: `silly silly silly silly goose` will match this rule instead of the next
+    cmd: echo {}
+  - reg: silly ([^ ]+) ([^ ]+) ([^ ]+) goose
+    cmd: echo the goose is {} {} and {}
+  - reg: list
+    cmd: ls
