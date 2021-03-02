@@ -1,0 +1,13 @@
+programs:
+  - targets:
+      - /tmp/testFile.txt
+    cmd: sh
+    args:
+      - ./test/test.sh
+      - file modified
+  - targets:
+      - /tmp/testDir/
+    cmd: sh
+    args:
+      - ./test/test.sh
+      - dir modified
