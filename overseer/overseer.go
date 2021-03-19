@@ -7,6 +7,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
+	"regexp"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -14,11 +17,17 @@ import (
 )
 
 type Config struct {
-	Filenames []string `yaml:"filenames"`
+	Rules []Rule `yaml:"rules,flow"`
+}
+
+type Rule struct {
+	Name      string   `yaml:"name"`
+	Filenames []string `yaml:"targets"`
+	Ignored   []string `yaml:"ignore"`
 	Cmd       string   `yaml:"cmd"`
 	Args      []string `yaml:"args"`
-	lockCh    chan interface{}
-	doneCh    chan interface{} // close to kill thread
+	Stdout    string   `yaml:"stdout"`
+	Stderr    string   `yaml:"stderr"`
 }
 
 func interfacesToStrs(is []interface{}) []string {
@@ -29,59 +38,54 @@ func interfacesToStrs(is []interface{}) []string {
 	return ss
 }
 
-func makeConfig(fns []string, e string, args []string) Config {
-	return Config{
-		Filenames: fns,
-		Cmd:       e,
-		Args:      args,
-		lockCh:    make(chan interface{}, 1),
-		doneCh:    make(chan interface{}),
-	}
-}
-
-func configFromYAML(fn string) ([]Config, error) {
-	ymap := make(map[interface{}]interface{})
-
+func configFromYAML(fn string) (Config, error) {
 	data, err := ioutil.ReadFile(fn)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 
-	err = yaml.Unmarshal([]byte(data), &ymap)
+	p := Config{}
+	err = yaml.Unmarshal([]byte(data), &p)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 
-	cs := []Config{}
-	for _, a := range ymap["programs"].([]interface{}) {
-		n := a.(map[interface{}]interface{})
-		c := makeConfig(interfacesToStrs(n["targets"].([]interface{})),
-			n["cmd"].(string),
-			interfacesToStrs(n["args"].([]interface{})))
-		cs = append(cs, c)
-	}
-
-	return cs, nil
+	return p, nil
 }
 
-func (t Config) run() {
+// write to doneCh to kill goroutine
+func (r Rule) run(doneCh chan interface{}) {
+	fmt.Printf(`Launching         `+"`%s`"+`
+Script:            %v
+Watching files:    %+v
+Ignoring patterns: %+v
+Logging stdout:    %s
+        stderr:    %s
+`, r.Name, r.Cmd+" "+strings.Join(r.Args, " "), r.Filenames, r.Ignored, r.Stdout, r.Stderr)
+
+	l := log.New(os.Stdout, r.Name+" ", log.LstdFlags)
+
+	// fsnotify setup
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		l.Fatal(r.Name, err)
 	}
 	defer func() {
-		fmt.Println("DONE")
+		l.Println("DONE")
 	}()
-	fmt.Println("START")
 	defer watcher.Close()
 
-	for _, fn := range t.Filenames {
+	for _, fn := range r.Filenames {
 		err = watcher.Add(fn)
 		if err != nil {
-			log.Fatal("`"+fn+"`: ", err)
+			l.Fatal("`"+fn+"`: ", err)
 		}
 	}
 
+	lockCh := make(chan interface{}, 1)
+	lockCh <- 1
+
+	// fsnotify select loop
 	for {
 		select {
 		case event, ok := <-watcher.Events:
@@ -89,30 +93,64 @@ func (t Config) run() {
 				return
 			}
 			go func() {
-				t.lockCh <- 1
-				log.Println("event:", event.Op, event.Name)
+				_ = <-lockCh
+				defer func() {
+					lockCh <- 1
+				}()
+				l.Println("event:", event.Op, event.Name)
+
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					// run script
-					log.Println("modified file:", event.Name)
-					cmd := exec.Command(t.Cmd, t.Args...)
-					fmt.Println(cmd)
-					log.Println("running script")
-					if err := cmd.Run(); err != nil {
-						fmt.Println("Error:", err)
+					// check if need to ignore
+					for _, v := range r.Ignored {
+						if ok, _ := regexp.MatchString(v, event.Name); ok {
+							l.Println("event ignored")
+							return
+						}
 					}
-					log.Println("script done")
+
+					// create log file streams
+					var stdout *os.File
+					var stderr *os.File
+
+					if len(r.Stdout) > 0 {
+						stdout, err = os.OpenFile(r.Stdout, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+						if err != nil {
+							l.Fatal(err)
+						}
+						defer stdout.Close()
+					}
+					if len(r.Stderr) > 0 {
+						if r.Stdout == r.Stderr {
+							stderr = stdout
+						} else {
+							stderr, err = os.OpenFile(r.Stderr, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+							if err != nil {
+								l.Fatal(err)
+							}
+							defer stderr.Close()
+						}
+					}
+
+					// run script
+					l.Println("modified file:", event.Name)
+					cmd := exec.Command(r.Cmd, r.Args...)
+					cmd.Stdout = stdout
+					cmd.Stderr = stderr
+					l.Println("running script")
+					if err := cmd.Run(); err != nil {
+						l.Println("Error:", err)
+					}
+					l.Println("script done")
 				}
-				_ = <-t.lockCh
 			}()
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				return
 			}
-			log.Println("error:", err)
-		case _, ok := <-t.doneCh:
-			if !ok {
-				return
-			}
+			l.Println("error:", err)
+		case _ = <-doneCh:
+			_ = <-lockCh
+			return
 		}
 	}
 }
@@ -130,18 +168,27 @@ func main() {
 	}
 	args := flag.Args()
 
+	killChs := []chan interface{}{}
 	for _, arg := range args {
-		ts, err := configFromYAML(arg)
+		p, err := configFromYAML(arg)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		for _, t := range ts {
-			fmt.Printf("%+v\n", t)
-			go t.run()
+		for _, t := range p.Rules {
+			doneCh := make(chan interface{})
+			killChs = append(killChs, doneCh)
+			go t.run(doneCh)
 		}
 	}
 
-	done := make(chan bool)
-	<-done
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	sig := <-c
+
+	fmt.Println("Received", sig, "signal.  Shutting down...")
+
+	for _, c := range killChs {
+		close(c)
+	}
 }
