@@ -1,5 +1,10 @@
 import re
+
 import speech_recognition as sr
+
+
+def mic_names():
+    return sr.Microphone.list_microphone_names()
 
 
 class Rule:
@@ -7,10 +12,14 @@ class Rule:
     expr = None
 
     def __init__(self, expr, callback):
+        '''
+        expr:     string or re.Pattern
+        callback: something callable() idk
+        '''
         t = type(expr)
         if t == str:
             self.expr = re.compile(expr)
-        elif t == re.Match:
+        elif t == re.Pattern:
             self.expr = expr
         else:
             raise ValueError('Expr invalid')
@@ -57,6 +66,11 @@ class Listener:
                     print('EXCEPTION IN', name+':', e)
 
     def add_rule(self, name, expr, callback):
+        '''
+        name:     arbitrary name, can be anything really
+        expr:     string or re.Pattern
+        callback: something callable() idk
+        '''
         r = Rule(expr, callback)
         self.rule_dict[name] = r
 
@@ -64,6 +78,10 @@ class Listener:
         del(self.rule_dict[name])
 
     def run(self, verbose=False, recognizer='sphinx', device_index=None, phrase_time_limit=10):
+        '''
+        recognizer:   one of 'google','sphinx'
+        device_index: device index as illustrated by `mic_names()`
+        '''
         self.verbose = verbose
         if recognizer not in ['google', 'sphinx']:
             raise ValueError(
