@@ -23,18 +23,25 @@ class Rule:
 class Listener:
     def __init__(self):
         self.rule_dict = {}
+        self.mode = 'sphinx'
 
     def sr_callback_(self, rcvr, audio):
+        inp = None
         try:
-            inp = None
-            if rec_mode == 'sphinx':
+            if self.mode == 'sphinx':
                 inp = rcvr.recognize_sphinx(audio)
-            elif rec_mode == 'google':
+            elif self.mode == 'google':
                 inp = rcvr.recognize_google(audio)
             if self.verbose:
                 print("AUDIO:", inp)
+        except Exception as e:
+            if self.verbose:
+                print("RECOGNIZE EXCEPTION:", e)
+            return
 
-            for name, rule in self.rule_dict:
+        for name in self.rule_dict:
+            try:
+                rule = self.rule_dict[name]
                 match = rule.expr.search(inp)
                 if not match:
                     continue
@@ -43,12 +50,11 @@ class Listener:
                 if self.verbose:
                     print("name:", name)
                     print("groups:", groups)
-                    print("cmd:", cmd)
-                rule.cb(*groups)
-
-        except Exception as e:
-            if self.verbose:
-                print('EXCEPTION:', e)
+                    print("cmd:", rule.cb)
+                rule.cb(groups)
+            except Exception as e:
+                if self.verbose:
+                    print('EXCEPTION IN', name+':', e)
 
     def add_rule(self, name, expr, callback):
         r = Rule(expr, callback)
@@ -59,7 +65,12 @@ class Listener:
 
     def run(self, verbose=False, recognizer='sphinx', device_index=None, phrase_time_limit=10):
         self.verbose = verbose
+        if recognizer not in ['google', 'sphinx']:
+            raise ValueError(
+                'Unsupported recognizer; must be one of: google,sphinx')
+        self.mode = recognizer
         m = None
+
         r = sr.Recognizer()
         device_count = sr.Microphone.get_pyaudio().PyAudio().get_device_count()
         if device_index is not None:
@@ -76,3 +87,14 @@ class Listener:
             source, self.sr_callback_, phrase_time_limit=phrase_time_limit)
 
         return stop_listening
+
+
+if __name__ == '__main__':
+    import sys
+
+    l = Listener()
+    l.add_rule('a', '(?i:(a\\w+))', lambda x: print("A:", x))
+    l.add_rule('b', '(?i:wow) (\\w+) (\\w+)', lambda x: print("B:", x))
+    print("GOIN")
+    stop = l.run(True, 'google')
+    sys.stdin.read(1)
