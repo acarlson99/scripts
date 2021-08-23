@@ -56,3 +56,10 @@ Allow this access for now by executing:
 # ausearch -c 'systemctl' --raw | audit2allow -M my-systemctl
 # semodule -X 300 -i my-systemctl.pp
 ```
+
+# IP
+
+```
+curl https://ifconfig.me/all
+curl ipinfo.io
+```
