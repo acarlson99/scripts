@@ -59,7 +59,14 @@ Allow this access for now by executing:
 
 # IP
 
-```
+```sh
 curl https://ifconfig.me/all
 curl ipinfo.io
+```
+
+# find IP
+
+```sh
+curl ifconfig.me
+curl ifconfig.me/all
 ```
