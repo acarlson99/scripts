@@ -1,12 +1,15 @@
 #!/usr/bin/python3
 
-import yaml
 import argparse
-import speech_recognition as sr
+import re
+import sys
 import threading
 from os import system
-import re
-import time
+
+import speech_recognition as sr
+import yaml
+
+import listener as lst
 
 # https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst
 
@@ -38,42 +41,15 @@ parser.add_argument(
     help='microphone index (see `--list-mic`) to use',
     default=None,
     type=int)
+parser.add_argument(
+    '-t',
+    '--phrase-time-limit',
+    default=10,
+    type=int)
 
 rule_list = []
 verbose = False
 rec_mode = 'sphinx'
-
-
-def callback(rcvr, audio):
-    try:
-        inp = None
-        if rec_mode == 'sphinx':
-            inp = rcvr.recognize_sphinx(audio)
-        elif rec_mode == 'google':
-            inp = rcvr.recognize_google(audio)
-        if verbose:
-            print("AUDIO:", inp)
-        handle_input(inp, rule_list)
-    except Exception as e:
-        if verbose:
-            print('EXCEPTION:', e)
-
-
-def exec_command(match, cmd):
-    if verbose:
-        print("match:", match)
-        print("cmd:", cmd)
-        print('executing:', cmd.format(*match))
-    system(cmd.format(*match))
-    return match
-
-
-def handle_input(txt, rule_list):
-    for (reg, cmd) in rule_list:
-        match = re.search(reg, txt)
-        if not match:
-            continue
-        return exec_command(match.groups(), cmd)
 
 
 def parse_rules(file):
@@ -111,27 +87,21 @@ def main():
      for (a, b) in rule_list]
 
     print("-----------------MIC-----------------")
-    device_count = sr.Microphone.get_pyaudio().PyAudio().get_device_count()
 
-    r = sr.Recognizer()
-    m = None
+    l = lst.Listener()
+    i = 0
+    for exp, cmd in rule_list:
+        def thing(c):
+            return lambda x: system(c.format(*x))
+        l.add_rule(i, exp, thing(cmd))
+        i += 1
+    stop_listening = l.run(verbose=args.verbose, recognizer=args.recognizer,
+                           device_index=args.device_index, phrase_time_limit=args.phrase_time_limit)
 
-    if args.device_index is not None:
-        if args.device_index > device_count - 1 or args.device_index < 0:
-            print("WARNING: invalid device index")
-        m = sr.Microphone(device_index=args.device_index)
-    else:
-        m = sr.Microphone()
+    print("-------------------------------------")
 
     e = threading.Event()
 
-    with m as source:
-        r.adjust_for_ambient_noise(source)  # reduce noise
-
-    stop_listening = r.listen_in_background(
-        source, callback, phrase_time_limit=10)
-
-    print("-------------------------------------")
     try:
         e.wait()
     except KeyboardInterrupt:
