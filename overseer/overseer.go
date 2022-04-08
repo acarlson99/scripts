@@ -157,7 +157,7 @@ Logging stdout:    %s
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println("usage:", os.Args[0], " config.yaml")
+		fmt.Println("usage:", os.Args[0], "config.yaml")
 		flag.PrintDefaults()
 	}
 
