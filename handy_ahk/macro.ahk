@@ -27,26 +27,27 @@ SetTitleMatchMode, 2
 DetectHiddenWindows, On
 ;--------------------------
 LogFile:=A_Temp . "\~Record.txt"
-UsedKeys:="F1,F2,F3,F4,F5,F6"
+UsedKeys:="F1,F2,F3,F4,F5,F6,F7"
 Play_Title:=RegExReplace(LogFile,".*\\") " ahk_class AutoHotkey"
 ;--------------------------
-Gui, +AlwaysOnTop -Caption +ToolWindow +E0x08000000 +Hwndgui_id
+; Gui, +AlwaysOnTop -Caption +ToolWindow +E0x08000000 +Hwndgui_id
+Gui, +AlwaysOnTop -Caption +ToolWindow
 Gui, Margin, 0, 0
 Gui, Font, s12
 s:="[F1]Record(Screen),[F2]Record(Window),"
-  . "[F3]Stop,[F4]Play,[F5]Edit,[F6] Pause "
+  . "[F3]Stop,[F4]Play,[F5]Edit,[F6] Pause,[F7] Quit "
 For i,v in StrSplit(s, ",")
 {
   j:=i=1 ? "":"x+0", j.=InStr(v,"Pause") ? " vPause":""
   Gui, Add, Button, %j% gRun, %v%
 }
-Gui, Add, Button, x+0 w0 Hidden vMyText
+; Gui, Add, Button, x+0 w0 Hidden vMyText
 Gui, Show, NA y0, Macro Recorder
-OnMessage(0x200,"WM_MOUSEMOVE")
+; OnMessage(0x200,"WM_MOUSEMOVE")
 ;--------------------------
-SetTimer, OnTop, 2000
-OnTop:
-Gui, +AlwaysOnTop
+; SetTimer, OnTop, 2000
+; OnTop:
+; Gui, +AlwaysOnTop
 return
 
 Run:
@@ -54,16 +55,16 @@ if IsLabel(k:=RegExReplace(RegExReplace(A_GuiControl,".*]"),"\W"))
   Goto, %k%
 return
 
-WM_MOUSEMOVE() {
-  static OK_Time
-  ListLines, Off
-  if (A_Gui=1) and (A_GuiControl="Pause")
-    and (t:=A_TickCount)>OK_Time
-  {
-    OK_Time:=t+500
-    Gosub, Pause
-  }
-}
+; WM_MOUSEMOVE() {
+;   static OK_Time
+;   ListLines, Off
+;   if (A_Gui=1) and (A_GuiControl="Pause")
+;     and (t:=A_TickCount)>OK_Time
+;   {
+;     OK_Time:=t+500
+;     Gosub, Pause
+;   }
+; }
 
 ShowTip(s:="", pos:="y35", color:="Red|00FFFF") {
   static bak, idx
@@ -217,6 +218,10 @@ if isPaused
 else
   GuiControl,, Pause, % "[F6] Pause "
 return
+
+f7::
+Quit:
+ExitApp
 
 
 ;============ Functions =============
