@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# DEPRECATED
+echo DEPRECATED! USE get-song-names
+
 if [[ $# -ne 1 ]]; then
 	echo "usage: $0 playlisturl"
 	exit 1
