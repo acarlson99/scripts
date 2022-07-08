@@ -1,5 +1,5 @@
-// node index.js -t=$ACCESS_TOKEN -p=$PLAYLIST_ID
-// node index.js -c=$CLIENT_ID -s=$CLIENT_SECRET -p=$PLAYLIST_ID
+// node index.js tok -t=$ACCESS_TOKEN -p=$PLAYLIST_ID
+// node index.js auth -c=$CLIENT_ID -s=$CLIENT_SECRET -p=$PLAYLIST_ID
 
 var express = require("express"); // Express web server framework
 var request = require("request"); // "Request" library
@@ -9,9 +9,9 @@ const { exit } = require("process");
 const yargs = require("yargs");
 const { string } = require("yargs");
 
-var client_id = "ID"; // Your client id
-var client_secret = "ID"; // Your secret
-var redirect_uri = "http://localhost:8888/callback"; // Your redirect uri
+var client_id = "ID";
+var client_secret = "ID";
+var redirect_uri = "http://localhost:8888/callback";
 
 var app = express();
 
