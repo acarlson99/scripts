@@ -138,19 +138,23 @@ const argv = yargs
           alias: "p",
           description: "playlist id",
           type: string,
-          required: true,
+          required: false,
         }),
     (argv) => {
       access_token = argv.accessToken;
       playlistID = argv.playlistID;
       doEncode = !argv.raw;
       var options = {
-        url: "https://api.spotify.com/v1/playlists/" + playlistID + "/tracks",
+        url: "https://api.spotify.com/v1/me/tracks",
         headers: { Authorization: "Bearer " + access_token },
         json: true,
       };
+      if (argv.playlistID) {
+        options.url =
+          "https://api.spotify.com/v1/playlists/" + playlistID + "/tracks";
+      }
 
-      // use the access token to access the Spotify Web API
+      // FIXME: this only works for 20 songs at a time
       request.get(options, function (error, response, body) {
         if (error != null) {
           console.error(error);
@@ -158,6 +162,7 @@ const argv = yargs
         }
         console.log(body);
         let ids = body.items.map((o) => o.track.id);
+        console.log(ids.length);
         let tracks = body.items;
         // let s = o.track.name + " " + o.track.artists.map((a) => a.name);
         // if (doEncode) s = encodeURIComponent(s);
@@ -180,9 +185,14 @@ const argv = yargs
               l.push({ features: features, ...track });
             }
             app.get("/thing", (req, res) => {
-              res.send(l);
+              // from browser JSON.parse(atob(decodeURIComponent(window.location.hash.slice(1))))
+              res.redirect(
+                "/workshop.html#" + encodeURIComponent(btoa(JSON.stringify(l)))
+              );
             });
-            console.log(l);
+            // console.log(l);
+            // console.log(l.length);
+            // TODO: send list to browser for filtering somehow
             // exit(0);
           }
         );
