@@ -1,15 +1,15 @@
 #!/bin/sh
 
 current_win() {
-	echo `xprop -root _NET_ACTIVE_WINDOW | sed 's/^.*# \(0x[^,]*\),.*$/\1/'`
+	xprop -root _NET_ACTIVE_WINDOW | sed 's/^.*# \(0x[^,]*\),.*$/\1/'
 }
 
 current_win_height() {
-	echo `xwininfo -stats -id $(current_win) | sed -n 's/^  Height: \([0-9]\+\)$/\1/p'`
+	xwininfo -stats -id $(current_win) | sed -n 's/^  Height: \([0-9]\+\)$/\1/p'
 }
 
 current_win_width() {
-	echo `xwininfo -stats -id $(current_win) | sed -n 's/^  Width: \([0-9]\+\)$/\1/p'`
+	xwininfo -stats -id $(current_win) | sed -n 's/^  Width: \([0-9]\+\)$/\1/p'
 }
 
 case $1 in
