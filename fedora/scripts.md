@@ -1,3 +1,16 @@
+# fedora setup
+```sh
+## if twitch not working
+## install rpmfusion https://rpmfusion.org/
+sudo dnf install \
+  https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+sudo dnf install \
+  https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+dnf install -y ffmpeg ffmpeg-devel
+## coreutils
+dnf install git coreutils emacs the_silver_searcher
+```
+
 # brightness
 xrandr -q | grep '\bconnected\b' | head -n 1 | cut -d ' ' -f1
 xrandr --output eDP-1 --brightness 0.4
