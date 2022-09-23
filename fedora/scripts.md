@@ -12,14 +12,19 @@ dnf install git coreutils emacs the_silver_searcher
 ```
 
 # brightness
+```
 xrandr -q | grep '\bconnected\b' | head -n 1 | cut -d ' ' -f1
 xrandr --output eDP-1 --brightness 0.4
+```
 
 # sound
+```
 alsamixer
 amixer -c 0 set PCM 5%+
+```
 
 # restart xfce
+```
 xfce4-panel -r
 xfwm4 --replace
 
@@ -27,37 +32,47 @@ xfce4-settings-editor
 
 xfconf-query -c xfce4-panel -p / -R -r
 xfce4-panel -r
+```
 
 # emacs
+```
 systemctl --user start emacs
 emacsclient -c file
+```
 
 # git
+```
 git clone ssh://git@github.com/acarlson99/repo.git
+```
 
 # inotify file limit
-
+```
 sudo sysctl fs.inotify.max_user_watches=524288
 sudo sysctl -p		# apply changes (I think)
+```
 
 # mount partition
-
+```
 udisksctl mount -b /dev/sda3
+```
 
 # add key to ssh
-
+```
 ssh-add ~/.ssh/id_keyname
+```
 
 # screen record
-
+```
 peek
+```
 
 # dnf
-
+```
 https://tylersguides.com/guides/listing-files-in-a-package-with-dnf/
 
 dnf repoquery -l pulseaudio-libs-devel # list files in repo
 rpm -ql crontabs
+```
 
 # enable setrlimit systemctl
 
@@ -85,7 +100,8 @@ curl ifconfig.me/all
 ```
 
 # edit application menu
-
+```
 ~/.local/share/applications
 
 https://wiki.xfce.org/howto/customize-menu
+```
