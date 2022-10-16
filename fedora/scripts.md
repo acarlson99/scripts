@@ -105,3 +105,9 @@ curl ifconfig.me/all
 
 https://wiki.xfce.org/howto/customize-menu
 ```
+
+# datetimectl
+```
+timedatectl set-local-rtc 0
+timedatectl set-timezone America/Los_Angeles
+```
